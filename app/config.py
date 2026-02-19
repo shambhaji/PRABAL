@@ -22,12 +22,12 @@ class Settings(BaseSettings):
     port: int = 8000
 
     # LLM
-    llm_provider: str = "gemini"  # "gemini" or "openai"
+    llm_provider: str = "openai"  # "gemini" or "openai" (OpenAI client used for Groq)
     gemini_api_key: str = ""
     gemini_model: str = "gemini-1.5-flash"
     openai_api_key: str = ""
-    openai_base_url: str = "https://api.openai.com/v1"  # Default to official API
-    openai_model: str = "gpt-4o-mini"
+    openai_base_url: str = "https://api.groq.com/openai/v1"  # Default to Groq
+    openai_model: str = "llama3-8b-8192"
 
     # Limits
     max_vcf_size_mb: int = 50
