@@ -40,8 +40,11 @@ export function Dashboard() {
         <div className="p-6 md:p-10 space-y-8 animate-in fade-in duration-500 min-h-[calc(100vh-64px)]">
             {/* Header */}
             <div className="flex flex-col gap-3 mb-10 text-center md:text-left">
-                <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
-                    Precision <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Pharmacogenomics</span>
+                <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
+                    PRABAL
+                    <span className="block text-2xl md:text-4xl mt-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                        Pharmacogenomic Risk Management Tool
+                    </span>
                 </h1>
                 <p className="text-slate-500 max-w-2xl text-lg mx-auto md:mx-0">
                     Upload patient VCF data and specify target medications to receive an AI-powered clinical narrative, drug risk assessment, and CPIC guidelines in seconds.
