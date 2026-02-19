@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: white;
+    color: #0f172a;
+    /* slate-900 */
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
