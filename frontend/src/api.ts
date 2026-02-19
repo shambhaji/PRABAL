@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// Default to the specified Vercel deployed backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://prabal43.vercel.app';
+// When built for production, Vercel will route /api to the FastAPI backend, so we use relative paths ('').
+// In local dev, use http://localhost:8000 (FastAPI default)
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.MODE === 'production' ? '' : 'http://localhost:8000');
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
