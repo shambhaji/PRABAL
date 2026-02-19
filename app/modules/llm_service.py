@@ -213,14 +213,14 @@ async def generate_llm_analysis(
         return _parse_llm_response(raw_response, settings.active_llm_model)
     except Exception as e:
         logger.error("LLM call failed: %s — using fallback.", e)
-        return _fallback_analysis(settings.active_llm_model)
+        return _fallback_analysis(settings.active_llm_model, error_msg=str(e))
 
 
-def _fallback_analysis(model_name: str) -> LLMAnalysis:
+def _fallback_analysis(model_name: str, error_msg: str = "API key not configured or service error") -> LLMAnalysis:
     """Return a graceful fallback when LLM is unavailable."""
     return LLMAnalysis(
         clinical_summary=(
-            "LLM analysis is currently unavailable (API key not configured or service error). "
+            f"LLM analysis is currently unavailable. Error details: {error_msg}. "
             "Please review the drug risk assessments and phenotype predictions for clinical guidance."
         ),
         mechanism_explanation=(
