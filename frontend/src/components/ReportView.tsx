@@ -70,21 +70,74 @@ const GenotypePill = ({ summary }: { summary: PhenotypePrediction }) => (
 export function ReportView({ report }: { report: PRABALResponse }) {
     if (!report) return null;
 
+    const handleDownloadJson = () => {
+        if (!report) return;
+
+        // Transform PRABALResponse into the exact requested JSON schema
+        const exportData = report.drug_risk_assessments.map(risk => {
+            const phenotypeInfo = report.phenotype_predictions.find(p => p.gene === risk.gene);
+
+            return {
+                patient_id: report.patient_id || "PATIENT_XXX",
+                drug: risk.drug,
+                timestamp: report.analysis_timestamp,
+                risk_assessment: {
+                    risk_label: risk.risk_category,
+                    confidence_score: risk.confidence_score,
+                    severity: risk.severity
+                },
+                pharmacogenomic_profile: {
+                    primary_gene: risk.gene,
+                    diplotype: phenotypeInfo?.diplotype || "Unknown",
+                    phenotype: phenotypeInfo?.phenotype || "Unknown",
+                    // detected_variants: report.detected_variants || [] // Add back if variants are included in response
+                },
+                clinical_recommendation: {
+                    recommendation_brief: risk.recommendation_brief,
+                    cpic_guideline: risk.cpic_guideline,
+                    mechanism: risk.mechanism || ""
+                },
+                llm_generated_explanation: {
+                    summary: report.llm_analysis?.clinical_summary || "",
+                    dosing_recommendations: report.llm_analysis?.dosing_recommendations || [],
+                    model_used: report.llm_analysis?.llm_model_used || ""
+                },
+                quality_metrics: {
+                    vcf_parsing_success: true,
+                    processing_time_ms: report.processing_time_ms,
+                    total_variants_parsed: report.vcf_metadata.total_variants,
+                    pgx_variants_found: report.vcf_metadata.pgx_variants_found
+                }
+            };
+        });
+
+        // Create blob and force download
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `prabal_report_${report.patient_id || 'patient'}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="space-y-10 mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-20">
 
             {/* VCF Metadata & Overall Risk Card */}
-            <div className="p-6 rounded-3xl border bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col md:flex-row gap-6 items-center justify-between shadow-xl shadow-slate-900/10">
+            <div className="p-6 rounded-3xl border bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col lg:flex-row gap-6 items-center justify-between shadow-xl shadow-slate-900/10">
                 <div>
-                    <h2 className="text-2xl font-bold mb-1 flex items-center gap-2">
+                    <h2 className="text-2xl font-bold mb-1 flex flex-wrap items-center gap-2">
                         Overall Assessment: <span className={cn(
                             "px-3 py-1 rounded-lg text-lg uppercase",
                             report.overall_risk.level === 'critical' || report.overall_risk.level === 'high' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
                         )}>{report.overall_risk.level}</span>
                     </h2>
-                    <p className="text-slate-400 text-sm">Processed {report.vcf_metadata.total_variants.toLocaleString()} variants in {report.processing_time_ms}ms.</p>
+                    <p className="text-slate-400 text-sm mt-2">Processed {report.vcf_metadata.total_variants.toLocaleString()} variants in {report.processing_time_ms}ms.</p>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex flex-wrap justify-center gap-4">
                     <div className="bg-white/10 rounded-xl p-4 text-center backdrop-blur-md">
                         <div className="text-2xl font-bold">{report.vcf_metadata.pgx_variants_found}</div>
                         <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">PGx Variants</div>
@@ -93,6 +146,13 @@ export function ReportView({ report }: { report: PRABALResponse }) {
                         <div className="text-2xl font-bold">{report.drug_risk_assessments.length}</div>
                         <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Drugs Analyzed</div>
                     </div>
+                    <button
+                        onClick={handleDownloadJson}
+                        className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-5 py-4 flex items-center justify-center gap-2 transition-colors font-bold shadow-lg shadow-blue-500/20 whitespace-nowrap"
+                    >
+                        <FileText className="w-5 h-5" />
+                        Export JSON
+                    </button>
                 </div>
             </div>
 
