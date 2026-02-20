@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     # LLM — set OPENAI_API_KEY env var in production
     openai_api_key: str = ""
     openai_base_url: str = "https://api.groq.com/openai/v1"
-    openai_model: str = "llama3-8b-8192"
+    openai_model: str = "llama-3.1-8b-instant"
 
     # Limits
     max_vcf_size_mb: int = 50
