@@ -152,10 +152,36 @@ def _parse_llm_response(raw: str, model_name: str) -> LLMAnalysis:
                 note=c.get("note", ""),
             ))
 
+    # Normalize dosing_recommendations — LLMs sometimes return dicts instead of strings
+    raw_recs = data.get("dosing_recommendations", [])
+    normalized_recs: list[str] = []
+    for rec in raw_recs:
+        if isinstance(rec, str):
+            normalized_recs.append(rec)
+        elif isinstance(rec, dict):
+            # Try to extract a readable string from common keys the LLM uses
+            text = (
+                rec.get("recommendation")
+                or rec.get("text")
+                or rec.get("note")
+                or rec.get("summary")
+                or rec.get("action")
+            )
+            if text:
+                # Optionally prefix with drug name if available
+                drug = rec.get("drug") or rec.get("drug_name")
+                normalized_recs.append(f"{drug.capitalize()}: {text}" if drug else str(text))
+            else:
+                # Last resort — dump the dict as a string so we don't lose info
+                parts = [f"{k}: {v}" for k, v in rec.items() if v]
+                normalized_recs.append(" | ".join(parts))
+        else:
+            normalized_recs.append(str(rec))
+
     return LLMAnalysis(
         clinical_summary=data.get("clinical_summary", "LLM analysis unavailable."),
         mechanism_explanation=data.get("mechanism_explanation", ""),
-        dosing_recommendations=data.get("dosing_recommendations", []),
+        dosing_recommendations=normalized_recs,
         variant_citations=citations,
         llm_model_used=model_name,
         llm_confidence=float(data.get("llm_confidence", 0.0)),
