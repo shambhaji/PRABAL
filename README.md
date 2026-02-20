@@ -25,8 +25,8 @@ cp .env.example .env
 python main.py
 ```
 
-API will be live at: **http://localhost:8000**  
-Interactive docs: **http://localhost:8000/docs**
+API will be live at: **https://prabal-orcin.vercel.app/**  
+Interactive docs: **https://prabal-orcin.vercel.app/**
 
 ---
 
@@ -45,7 +45,7 @@ Main analysis endpoint. Accepts a VCF file and drug list.
 
 **Example (curl):**
 ```bash
-curl -X POST http://localhost:8000/api/v1/analyze \
+curl -X POST https://prabal-orcin.vercel.app/ \
   -F "vcf_file=@data/sample_test.vcf" \
   -F "drugs=codeine,warfarin,fluorouracil" \
   -F "patient_id=PT-001"
