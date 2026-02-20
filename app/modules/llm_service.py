@@ -97,31 +97,6 @@ Rules:
     return prompt
 
 
-# ── Gemini Client ─────────────────────────────────────────────────────────────
-
-async def _call_gemini(prompt: str) -> str:
-    """Call Google Gemini API asynchronously using the new google-genai SDK."""
-    try:
-        from google import genai  # type: ignore
-        from google.genai import types  # type: ignore
-
-        client = genai.Client(api_key=settings.gemini_api_key)
-        response = await client.aio.models.generate_content(
-            model=settings.gemini_model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.2,
-                max_output_tokens=2048,
-                response_mime_type="application/json",
-            ),
-        )
-        return response.text
-    except Exception as e:
-        logger.error("Gemini API error: %s", e)
-        raise
-
-
-
 # ── OpenAI Client ─────────────────────────────────────────────────────────────
 
 async def _call_openai(prompt: str) -> str:
@@ -206,10 +181,7 @@ async def generate_llm_analysis(
     prompt = _build_prompt(variants, phenotypes, drug_risks, drugs)
 
     try:
-        if settings.llm_provider == "gemini":
-            raw_response = await _call_gemini(prompt)
-        else:
-            raw_response = await _call_openai(prompt)
+        raw_response = await _call_openai(prompt)
         return _parse_llm_response(raw_response, settings.active_llm_model)
     except Exception as e:
         logger.error("LLM call failed: %s — using fallback.", e)

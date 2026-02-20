@@ -22,9 +22,6 @@ class Settings(BaseSettings):
     port: int = 8000
 
     # LLM
-    llm_provider: str = "openai"  # "gemini" or "openai" (OpenAI client used for Groq)
-    gemini_api_key: str = ""
-    gemini_model: str = "gemini-1.5-flash"
     openai_api_key: str = ""
     openai_base_url: str = "https://api.groq.com/openai/v1"  # Default to Groq
     openai_model: str = "llama3-8b-8192"
@@ -38,14 +35,10 @@ class Settings(BaseSettings):
 
     @property
     def active_llm_key(self) -> str:
-        if self.llm_provider == "gemini":
-            return self.gemini_api_key
         return self.openai_api_key
 
     @property
     def active_llm_model(self) -> str:
-        if self.llm_provider == "gemini":
-            return self.gemini_model
         return self.openai_model
 
 
