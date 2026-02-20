@@ -12,34 +12,40 @@ const RiskCard = ({ risk }: { risk: DrugRiskAssessment }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-                "p-5 rounded-2xl border flex flex-col gap-3",
-                isDanger ? "bg-red-50/50 border-red-200" : isSafe ? "bg-emerald-50/50 border-emerald-200" : "bg-slate-50 border-slate-200"
+                "p-5 rounded-2xl border flex flex-col gap-3 relative overflow-hidden",
+                "shadow-sm hover:shadow-md transition-shadow",
+                isDanger ? "bg-red-50/70 border-red-200" : isSafe ? "bg-emerald-50/70 border-emerald-200" : "bg-amber-50/50 border-amber-200"
             )}
         >
-            <div className="flex justify-between items-start">
+            {/* Colored left accent bar */}
+            <div className={cn(
+                "absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl",
+                isDanger ? "bg-red-400" : isSafe ? "bg-emerald-400" : "bg-amber-400"
+            )} />
+            <div className="flex justify-between items-start pl-2">
                 <h4 className="font-bold text-lg text-slate-900 capitalize">{risk.drug}</h4>
                 {isDanger ? (
-                    <ShieldAlert className="w-5 h-5 text-red-500" />
+                    <ShieldAlert className="w-5 h-5 text-red-500 shrink-0" />
                 ) : isSafe ? (
-                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                    <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0" />
                 ) : (
-                    <AlertTriangle className="w-5 h-5 text-amber-500" />
+                    <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
                 )}
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap pl-2">
                 <span className={cn(
-                    "px-2.5 py-1 text-xs font-semibold rounded-md",
+                    "px-2.5 py-1 text-xs font-bold rounded-lg",
                     isDanger ? "bg-red-100 text-red-700" : isSafe ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
                 )}>
                     {risk.risk_category}
                 </span>
                 <span className="text-xs text-slate-500 font-medium">via {risk.gene}</span>
             </div>
-            <p className="text-sm text-slate-600 mt-1 leading-relaxed font-medium">
+            <p className="text-sm text-slate-600 leading-relaxed pl-2">
                 {risk.recommendation_brief}
             </p>
             {risk.cpic_guideline ? (
-                <p className="text-xs text-slate-500 border-t border-slate-200/60 pt-2 mt-auto">
+                <p className="text-xs text-slate-500 border-t border-slate-200/60 pt-2 mt-auto pl-2">
                     {risk.cpic_guideline}
                 </p>
             ) : null}
@@ -48,18 +54,24 @@ const RiskCard = ({ risk }: { risk: DrugRiskAssessment }) => {
 };
 
 const GenotypePill = ({ summary }: { summary: PhenotypePrediction }) => (
-    <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-blue-300 transition-colors">
+    <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-300 hover:shadow-md transition-all">
         <div className="flex items-center gap-3">
-            <div className="bg-indigo-100 p-2 rounded-lg">
-                <Dna className="w-4 h-4 text-indigo-600" />
+            <div className="bg-gradient-to-br from-indigo-500 to-blue-600 p-2 rounded-lg shadow-sm shadow-indigo-300/30">
+                <Dna className="w-4 h-4 text-white" />
             </div>
             <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">{summary.gene}</p>
-                <p className="font-medium text-slate-900">{summary.diplotype}</p>
+                <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">{summary.gene}</p>
+                <p className="font-semibold text-slate-900">{summary.diplotype}</p>
             </div>
         </div>
-        <div className="text-right flex flex-col items-end">
-            <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium mb-1">
+        <div className="text-right flex flex-col items-end gap-1">
+            <span className={cn(
+                "text-xs px-2 py-0.5 rounded-full font-semibold",
+                summary.phenotype?.toLowerCase().includes('poor') ? 'bg-red-100 text-red-700' :
+                    summary.phenotype?.toLowerCase().includes('rapid') || summary.phenotype?.toLowerCase().includes('ultra') ? 'bg-purple-100 text-purple-700' :
+                        summary.phenotype?.toLowerCase().includes('normal') ? 'bg-emerald-100 text-emerald-700' :
+                            'bg-slate-100 text-slate-700'
+            )}>
                 {summary.phenotype}
             </span>
             <span className="text-[10px] text-slate-400 font-medium">Score: {summary.activity_score}</span>
@@ -127,28 +139,32 @@ export function ReportView({ report }: { report: PRABALResponse }) {
         <div className="space-y-10 mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-20">
 
             {/* VCF Metadata & Overall Risk Card */}
-            <div className="p-6 rounded-3xl border bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col lg:flex-row gap-6 items-center justify-between shadow-xl shadow-slate-900/10">
+            <div className="p-6 rounded-3xl border bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 text-white flex flex-col lg:flex-row gap-6 items-center justify-between shadow-2xl shadow-slate-900/20">
                 <div>
-                    <h2 className="text-2xl font-bold mb-1 flex flex-wrap items-center gap-2">
-                        Overall Assessment: <span className={cn(
-                            "px-3 py-1 rounded-lg text-lg uppercase",
-                            report.overall_risk.level === 'critical' || report.overall_risk.level === 'high' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
+                    <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-2">Analysis Complete</p>
+                    <h2 className="text-2xl font-bold mb-1 flex flex-wrap items-center gap-3">
+                        Overall Risk:
+                        <span className={cn(
+                            "px-4 py-1.5 rounded-xl text-lg font-black uppercase tracking-wide",
+                            report.overall_risk.level === 'critical' ? 'bg-red-500/25 text-red-300 ring-2 ring-red-500/40 animate-pulse' :
+                                report.overall_risk.level === 'high' ? 'bg-orange-500/25 text-orange-300 ring-1 ring-orange-400/40' :
+                                    'bg-emerald-500/20 text-emerald-300'
                         )}>{report.overall_risk.level}</span>
                     </h2>
                     <p className="text-slate-400 text-sm mt-2">Processed {report.vcf_metadata.total_variants.toLocaleString()} variants in {report.processing_time_ms}ms.</p>
                 </div>
                 <div className="flex flex-wrap justify-center gap-4">
-                    <div className="bg-white/10 rounded-xl p-4 text-center backdrop-blur-md">
-                        <div className="text-2xl font-bold">{report.vcf_metadata.pgx_variants_found}</div>
-                        <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">PGx Variants</div>
+                    <div className="bg-white/10 rounded-xl p-4 text-center backdrop-blur-md border border-white/10">
+                        <div className="text-3xl font-black">{report.vcf_metadata.pgx_variants_found}</div>
+                        <div className="text-xs text-slate-400 uppercase font-bold tracking-wider mt-1">PGx Variants</div>
                     </div>
-                    <div className="bg-white/10 rounded-xl p-4 text-center backdrop-blur-md">
-                        <div className="text-2xl font-bold">{report.drug_risk_assessments.length}</div>
-                        <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Drugs Analyzed</div>
+                    <div className="bg-white/10 rounded-xl p-4 text-center backdrop-blur-md border border-white/10">
+                        <div className="text-3xl font-black">{report.drug_risk_assessments.length}</div>
+                        <div className="text-xs text-slate-400 uppercase font-bold tracking-wider mt-1">Drugs Analyzed</div>
                     </div>
                     <button
                         onClick={handleDownloadJson}
-                        className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-5 py-4 flex items-center justify-center gap-2 transition-colors font-bold shadow-lg shadow-blue-500/20 whitespace-nowrap"
+                        className="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-xl px-5 py-4 flex items-center justify-center gap-2 transition-all font-bold shadow-lg shadow-blue-500/30 whitespace-nowrap"
                     >
                         <FileText className="w-5 h-5" />
                         Export JSON
