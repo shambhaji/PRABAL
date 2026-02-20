@@ -1,9 +1,9 @@
 import axios from 'axios';
 
 // In production, use the absolute Vercel URL to avoid path resolution errors.
-// In production (Render/Docker), the API and Frontend share the same domain, so use a relative path ('')
+// In production, explicitly point to the Vercel deployed URL so it finds the backend serverless functions.
 // In local dev, use http://localhost:8000 (FastAPI default)
-const API_BASE_URL = import.meta.env.MODE === 'production' ? '' : 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.MODE === 'production' ? 'https://prabal-orcin.vercel.app' : 'http://localhost:8000';
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
