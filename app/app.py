@@ -3,12 +3,15 @@ FastAPI Application Factory
 """
 from __future__ import annotations
 
+import os
 import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from app.config import get_settings
 from app.routes.analysis import router as analysis_router
@@ -26,7 +29,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🧬 PGx Risk Prediction API starting up...")
-    logger.info("LLM Provider: %s | Model: %s", settings.llm_provider, settings.active_llm_model)
+    logger.info("LLM Model: %s", settings.active_llm_model)
     yield
     logger.info("🧬 PGx Risk Prediction API shutting down.")
 
@@ -48,7 +51,7 @@ def create_app() -> FastAPI:
     # ── CORS ──────────────────────────────────────────────────────────────────
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Tighten in production
+        allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -67,16 +70,28 @@ def create_app() -> FastAPI:
     app.include_router(analysis_router)
     app.include_router(health_router)
 
-    @app.get("/", tags=["Root"])
-    async def root():
-        return {
-            "name": settings.app_name,
-            "version": settings.app_version,
-            "docs": "/docs",
-            "health": "/api/v1/health",
-            "analyze": "POST /api/v1/analyze",
-            "frontend_status": "Proxying to Vite Frontend via Vercel",
-        }
+    # ── Serve React SPA (when running in Docker/Render) ───────────────────────
+    frontend_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+
+    if os.path.isdir(frontend_dist):
+        logger.info("Serving frontend SPA from %s", frontend_dist)
+
+        assets_dir = os.path.join(frontend_dist, "assets")
+        if os.path.isdir(assets_dir):
+            app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+        @app.get("/{full_path:path}", include_in_schema=False)
+        async def serve_spa(full_path: str):
+            file_path = os.path.join(frontend_dist, full_path)
+            if os.path.isfile(file_path):
+                return FileResponse(file_path)
+            return FileResponse(os.path.join(frontend_dist, "index.html"))
+    else:
+        logger.info("No frontend dist found — running in API-only mode.")
+
+        @app.get("/", tags=["Root"])
+        async def root():
+            return {"name": settings.app_name, "version": settings.app_version, "docs": "/docs"}
 
     return app
 

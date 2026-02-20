@@ -1,9 +1,8 @@
 import axios from 'axios';
 
-// In production, use the absolute Vercel URL to avoid path resolution errors.
-// In production, explicitly point to the Vercel deployed URL so it finds the backend serverless functions.
-// In local dev, use http://localhost:8000 (FastAPI default)
-const API_BASE_URL = import.meta.env.MODE === 'production' ? 'https://prabal-orcin.vercel.app' : 'http://localhost:8000';
+// In production (Render Docker): FastAPI serves the React build from the same domain, so use relative paths.
+// In local dev: Vite runs on port 5173, FastAPI on 8000 — use explicit URL.
+const API_BASE_URL = import.meta.env.MODE === 'production' ? '' : 'http://localhost:8000';
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
