@@ -2,7 +2,7 @@
     "version": 2,
     "builds": [
         {
-            "src": "main.py",
+            "src": "app/app.py",
             "use": "@vercel/python"
         },
         {
@@ -16,15 +16,15 @@
     "routes": [
         {
             "src": "/api/(.*)",
-            "dest": "/main.py"
+            "dest": "/app/app.py"
         },
         {
             "src": "/docs",
-            "dest": "/main.py"
+            "dest": "/app/app.py"
         },
         {
             "src": "/openapi.json",
-            "dest": "/main.py"
+            "dest": "/app/app.py"
         },
         {
             "src": "/assets/(.*)",
